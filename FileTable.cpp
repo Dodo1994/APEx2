@@ -93,14 +93,6 @@ void FileTable::loadFile(string fileName, MyImplementation *ex2) {
                 ex2->addResevation(id, customerId, flightId, clas, maxBag);
             }
         }
-            // Working employees file.
-        else if (type == 'W') {
-            string idEmp, idFli;
-            file >> idEmp >> idFli;
-            if (!(idEmp.empty() || idFli.empty())) {
-                ex2->setFlightsByCrew(idEmp, idFli);
-            }
-        }
     }
     file.close();
 }
@@ -140,7 +132,7 @@ void FileTable::saveEmployeeFile(map<string, MyEmployee *> employees) {
 }
 
 void FileTable::savePlaneFile(map<string, MyPlane *> planes) {
-    ofstream file("Planes.txt");
+    ofstream file("Planes.txt", ios::trunc);
     if (file.fail()) {
         cerr << "Error opening file" << endl;
         exit(1);
@@ -157,7 +149,7 @@ void FileTable::savePlaneFile(map<string, MyPlane *> planes) {
 }
 
 void FileTable::saveFlightFile(map<string, MyFlight *> flights) {
-    ofstream file("Flights.txt");
+    ofstream file("Flights.txt", ios::trunc);
     if (file.fail()) {
         cerr << "Error opening file" << endl;
         exit(1);
@@ -171,7 +163,7 @@ void FileTable::saveFlightFile(map<string, MyFlight *> flights) {
 }
 
 void FileTable::saveCustomerFile(map<string, MyCustomer *> customers) {
-    ofstream file("Customers.txt");
+    ofstream file("Customers.txt", ios::trunc);
     if (file.fail()) {
         cerr << "Error opening file" << endl;
         exit(1);
@@ -185,7 +177,7 @@ void FileTable::saveCustomerFile(map<string, MyCustomer *> customers) {
 }
 
 void FileTable::saveReservationFile(map<string, MyReservation *> reservations) {
-    ofstream file("Reservations.txt");
+    ofstream file("Reservations.txt", ios::trunc);
     if (file.fail()) {
         cerr << "Error opening file" << endl;
         exit(1);
@@ -202,18 +194,6 @@ void FileTable::saveReservationFile(map<string, MyReservation *> reservations) {
         file << reservation.second->getID() << ' ' << reservation.second->getCustomer()->getID() << ' '
              << reservation.second->getFlight()->getID() << ' ' << c << ' '
              << reservation.second->getMaxBaggage() << endl;
-    }
-    file.close();
-}
-
-void FileTable::saveEmployeeFlightFile(map<string, string> employees) {
-    ofstream file("Working.txt");
-    if (file.fail()) {
-        cerr << "Error opening file" << endl;
-        exit(1);
-    }
-    for (auto &employee: employees) {
-        file << employee.first << ' ' << employee.second << endl;
     }
     file.close();
 }

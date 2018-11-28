@@ -26,7 +26,6 @@ private:
     map<string, MyFlight *> flights;
     map<string, MyCustomer *> customers;
     map<string, MyReservation *> reservations;
-    map<string, string> flightsByCrew;
 
 public:
     MyImplementation() = default;
@@ -96,9 +95,15 @@ public:
 
     Reservation *getReservation(string id);
 
-    void setFlightsByCrew(string idEmp, string idFli);
-
     int getNumberOfPassangers(string flight);
+
+    bool loadIfWorkingEmployee(string employee, Date date);
+
+    void saveWorking(string key, string value);
+
+    bool loadIfUsedPlane(string plane, Date date);
+
+    void loadFlightCrew(MyFlight* flight);
 
     template<class T>
     void deleteMaps(map<string, T> myMap) {

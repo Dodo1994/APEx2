@@ -87,10 +87,6 @@ Flight *MyImplementation::addFlight(int model_number, Date date, string source, 
         FileTable::loadFile("Planes.txt", this);
         plaFile = false;
     }
-    if (worFile) {
-        FileTable::loadFile("Working.txt", this);
-        worFile = false;
-    }
     if (empFile) {
         FileTable::loadFile("Employees.txt", this);
         empFile = false;
@@ -105,13 +101,8 @@ Flight *MyImplementation::addFlight(int model_number, Date date, string source, 
     string myId;
     for (auto &employee: this->employees) {
         bool isWorking = false;
-        if (this->flightsByCrew.count(employee.first) > 0) {
-            myId=this->flightsByCrew.find(employee.first)->second;
-            if(myId[0]=='F') {
-                if (this->flights[myId]->getDate() == flight->getDate()) {
-                    isWorking = true;
-                }
-            }
+        if (this->loadIfWorkingEmployee(employee.first, flight->getDate())) {
+            isWorking = true;
         }
         if (!isWorking) {
             if (employee.second->getTitle() == MANAGER && man > 0) {
@@ -138,29 +129,22 @@ Flight *MyImplementation::addFlight(int model_number, Date date, string source, 
         delete flight;
         return nullptr;
     }
+    bool foundPlane=false;
     for (auto &pla: this->planes) {
-        bool taken = false;
         if (pla.second->getModelNumber() == model_number) {
-            for (auto &exist: this->flightsByCrew) {
-                if (pla.second->getID() == exist.second) {
-                    if (this->getFlight(exist.first)->getDate() == date) {
-                        taken = true;
-                        break;
-                    }
-                }
-            }
-            if (!taken) {
-                this->flightsByCrew.insert(pair<string, string>(flight->getID(), pla.first));
+            if (!(this->loadIfUsedPlane(pla.first, date))) {
+                this->saveWorking(flight->getID(), pla.first);
+                foundPlane= true;
             }
         }
     }
-    if (this->flightsByCrew.count(flight->getID()) == 0) {
+    if (!foundPlane) {
         cout << "No available planes" << endl;
         delete flight;
         return nullptr;
     }
     for (auto &crew: flight->getAssignedCrew()) {
-        this->flightsByCrew.insert(pair<string, string>(crew->getID(), flight->getID()));
+        this->saveWorking(crew->getID(), flight->getID());
     }
     this->flights[flight->getID()] = flight;
     cout << "Added flight successfully" << endl;
@@ -172,20 +156,12 @@ Flight *MyImplementation::addFlight(string id, int model_number, Date date, stri
         FileTable::loadFile("Planes.txt", this);
         plaFile = false;
     }
-    if (worFile) {
-        FileTable::loadFile("Working.txt", this);
-        worFile = false;
-    }
     if (empFile) {
         FileTable::loadFile("Employees.txt", this);
         empFile = false;
     }
     auto *flight = new MyFlight(id, model_number, date, source, destination);
-    for (auto &crew: this->flightsByCrew) {
-        if (crew.second == flight->getID()) {
-            flight->addCrew(this->employees[crew.first]);
-        }
-    }
+    this->loadFlightCrew(flight);
     this->flights[flight->getID()] = flight;
     return flight;
 }
@@ -203,7 +179,7 @@ Flight *MyImplementation::getFlight(string id) {
 
 Customer *MyImplementation::addCustomer(string full_name, int priority) {
     if (cusFile) {
-        FileTable::loadFile("Customer.txt", this);
+        FileTable::loadFile("Customers.txt", this);
         cusFile = false;
     }
     auto *customer = new MyCustomer(full_name, priority);
@@ -220,7 +196,7 @@ Customer *MyImplementation::addCustomer(string id, string full_name, int priorit
 
 Customer *MyImplementation::getCustomer(string id) {
     if (cusFile) {
-        FileTable::loadFile("Customer.txt", this);
+        FileTable::loadFile("Customers.txt", this);
         cusFile = false;
     }
     if (this->customers.count(id) == 0) {
@@ -238,7 +214,7 @@ MyImplementation::addResevation(string id, string customerId, string flightId, C
         return nullptr;
     }
     if (cusFile) {
-        FileTable::loadFile("Customer.txt", this);
+        FileTable::loadFile("Customers.txt", this);
         cusFile = false;
     }
     if (fliFile) {
@@ -255,11 +231,11 @@ MyImplementation::addResevation(string id, string customerId, string flightId, C
 
 Reservation *MyImplementation::addResevation(string customerId, string flightId, Classes cls, int max_baggage) {
     if (resFile) {
-        FileTable::loadFile("Resevations.txt", this);
+        FileTable::loadFile("Reservations.txt", this);
         resFile = false;
     }
     if (cusFile) {
-        FileTable::loadFile("Customer.txt", this);
+        FileTable::loadFile("Customers.txt", this);
         cusFile = false;
     }
     if (fliFile) {
@@ -298,7 +274,7 @@ Reservation *MyImplementation::addResevation(string customerId, string flightId,
 
 Reservation *MyImplementation::getReservation(string id) {
     if (resFile) {
-        FileTable::loadFile("Resevations.txt", this);
+        FileTable::loadFile("Reservations.txt", this);
         resFile = false;
     }
     if (this->reservations.count(id) == 0) {
@@ -313,7 +289,6 @@ void MyImplementation::exit() {
     FileTable::saveCustomerFile(this->customers);
     FileTable::saveFlightFile(this->flights);
     FileTable::saveReservationFile(this->reservations);
-    FileTable::saveEmployeeFlightFile(this->flightsByCrew);
     IDCreator::create(true);
     cout << "So sad you are leaving!" << endl;
 }
@@ -326,9 +301,6 @@ MyImplementation::~MyImplementation() {
     this->deleteMaps(this->reservations);
 }
 
-void MyImplementation::setFlightsByCrew(string idEmp, string idFli) {
-    this->flightsByCrew.insert(pair<string, string>(idEmp, idFli));
-}
 
 int MyImplementation::getNumberOfPassangers(string flight) {
     int count = 0;
@@ -338,4 +310,76 @@ int MyImplementation::getNumberOfPassangers(string flight) {
         }
     }
     return count;
+}
+
+bool MyImplementation::loadIfWorkingEmployee(string employee, Date date) {
+    ifstream file("Working.txt");
+    // Check error.
+    if (file.fail()) {
+        return false;
+    }
+    while (file.eof()) {
+        string idEmp, idFli;
+        file >> idEmp >> idFli;
+        if (!(idEmp.empty() || idFli.empty())) {
+            if (idEmp == employee) {
+                if (this->flights[idFli]->getDate() == date) {
+                    file.close();
+                    return true;
+                }
+            }
+        }
+    }
+    file.close();
+    return false;
+}
+
+void MyImplementation::saveWorking(string key, string value) {
+    ofstream file("Working.txt", ios::app);
+    if (file.fail()) {
+        cerr << "Error opening file" << endl;
+        return;
+    }
+    file << key << ' ' << value << endl;
+    file.close();
+}
+
+bool MyImplementation::loadIfUsedPlane(string plane, Date date) {
+    ifstream file("Working.txt");
+    // Check error.
+    if (file.fail()) {
+        return false;
+    }
+    while (file.eof()) {
+        string idFli, idPla;
+        file >> idFli >> idPla;
+        if (!(idFli.empty() || idPla.empty())) {
+            if (idPla == plane) {
+                if (this->flights[idFli]->getDate() == date) {
+                    file.close();
+                    return true;
+                }
+            }
+        }
+    }
+    file.close();
+    return false;
+}
+
+void MyImplementation::loadFlightCrew(MyFlight *flight) {
+    ifstream file("Working.txt");
+    // Check error.
+    if (file.fail()) {
+        return;
+    }
+    while (file.eof()) {
+        string idEmp, idFli;
+        file >> idEmp >> idFli;
+        if (!(idFli.empty() || idEmp.empty())) {
+            if (idFli == flight->getID()) {
+                flight->addCrew(this->employees[idEmp]);
+            }
+        }
+    }
+    file.close();
 }
