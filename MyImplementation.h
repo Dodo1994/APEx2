@@ -19,7 +19,6 @@ private:
     bool fliFile = true;
     bool cusFile = true;
     bool resFile = true;
-    bool worFile = true;
     map<string, MyEmployee *> employees;
     map<string, MyPlane *> planes;
     map<int, MyPlane *> planesByModel;
