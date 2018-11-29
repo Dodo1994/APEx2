@@ -1,6 +1,4 @@
-//
-// Created by doviwid on 11/25/18.
-//
+
 
 #ifndef APEX2_MYIMPLEMENTATION_H
 #define APEX2_MYIMPLEMENTATION_H

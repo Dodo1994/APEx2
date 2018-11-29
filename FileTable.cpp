@@ -1,6 +1,3 @@
-//
-// Created by doviwid on 11/26/18.
-//
 
 
 #include "FileTable.h"
@@ -64,15 +61,16 @@ void FileTable::loadFile(string fileName, MyImplementation *ex2) {
             int modelNumber;
             file >> id >> modelNumber >> date >> source >> destination;
             if (!id.empty()) {
-                ex2->addFlight(id, modelNumber, date, source, destination);
+                ex2->addFlight(id, modelNumber, date, FileTable::swapChars(source, '-', ' '),
+                               FileTable::swapChars(destination, '-', ' '));
             }
         }
             // Customer file.
         else if (type == 'C') {
-            string id, firstName, lastName;
+            string id, fullName;
             int priority;
-            file >> id >> firstName >> lastName >> priority;
-            string fullName = firstName + " " + lastName;
+            file >> id >> fullName >> priority;
+            fullName = FileTable::swapChars(fullName, '-', ' ');
             if (!id.empty()) {
                 ex2->addCustomer(id, fullName, priority);
             }
@@ -156,8 +154,9 @@ void FileTable::saveFlightFile(map<string, MyFlight *> flights) {
     }
     for (auto &flight: flights) {
         file << flight.second->getID() << ' ' << flight.second->getModelNumber() << ' '
-             << flight.second->getDate().getDate() << ' ' << flight.second->getSource() << ' '
-             << flight.second->getDestination() << endl;
+             << flight.second->getDate().getDate() << ' ' << FileTable::swapChars(flight.second->getSource(), ' ', '-')
+             << ' '
+             << FileTable::swapChars(flight.second->getDestination(), ' ', '-') << endl;
     }
     file.close();
 }
@@ -169,9 +168,8 @@ void FileTable::saveCustomerFile(map<string, MyCustomer *> customers) {
         exit(1);
     }
     for (auto &customer: customers) {
-        file << customer.second->getID() << ' ' << customer.second->getFullName() << ' '
-             << customer.second->getPriority()
-             << endl;
+        file << customer.second->getID() << ' ' << FileTable::swapChars(customer.second->getFullName(), ' ', '-') << ' '
+             << customer.second->getPriority() << endl;
     }
     file.close();
 }
@@ -196,4 +194,13 @@ void FileTable::saveReservationFile(map<string, MyReservation *> reservations) {
              << reservation.second->getMaxBaggage() << endl;
     }
     file.close();
+}
+
+string FileTable::swapChars(string word, char a, char b) {
+    for (char &i : word) {
+        if (i == a) {
+            i = b;
+        }
+    }
+    return word;
 }

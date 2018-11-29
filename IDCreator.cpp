@@ -1,6 +1,3 @@
-//
-// Created by doviwid on 11/24/18.
-//
 
 
 #include "IDCreator.h"

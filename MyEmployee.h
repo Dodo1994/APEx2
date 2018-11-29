@@ -1,6 +1,4 @@
-//
-// Created by doviwid on 11/24/18.
-//
+
 
 #ifndef APEX2_MYEMPLOYEE_H
 #define APEX2_MYEMPLOYEE_H
