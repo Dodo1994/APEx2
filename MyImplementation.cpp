@@ -109,7 +109,7 @@ Flight *MyImplementation::addFlight(int model_number, Date date, string source, 
     string myId;
     for (auto &employee: this->employees) {
         bool isWorking = false;
-        if (this->loadIfWorkingEmployee(employee.first, flight->getDate())) {
+        if (this->loadIfWorkingEmployee(employee.first, flight)) {
             isWorking = true;
         }
         if (!isWorking) {
@@ -337,7 +337,7 @@ int MyImplementation::getNumberOfPassangers(string flight) {
     return count;
 }
 
-bool MyImplementation::loadIfWorkingEmployee(string employee, Date date) {
+bool MyImplementation::loadIfWorkingEmployee(string employee, MyFlight *flight) {
     ifstream file("Working.txt");
     // Check error.
     if (file.fail()) {
@@ -348,7 +348,7 @@ bool MyImplementation::loadIfWorkingEmployee(string employee, Date date) {
         file >> idEmp >> idFli;
         if (!(idEmp.empty() || idFli.empty())) {
             if (idEmp == employee) {
-                if (this->flights[idFli]->getDate() == date) {
+                if (this->flights[idFli]->getDate() == flight->getDate() && idFli != flight->getID()) {
                     file.close();
                     return true;
                 }

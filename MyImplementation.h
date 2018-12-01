@@ -94,13 +94,13 @@ public:
 
     int getNumberOfPassangers(string flight);
 
-    bool loadIfWorkingEmployee(string employee, Date date);
+    bool loadIfWorkingEmployee(string employee, MyFlight *flight);
 
     void saveWorking(string key, string value);
 
     bool loadIfUsedPlane(string plane, Date date);
 
-    void loadFlightCrew(MyFlight* flight);
+    void loadFlightCrew(MyFlight *flight);
 
     template<class T>
     void deleteMaps(map<string, T> myMap) {
