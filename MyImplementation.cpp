@@ -13,7 +13,7 @@ Employee *MyImplementation::addEmployee(int seniority, int birth_year, string em
     }
     MyEmployee *emp;
     if (!employer_id.empty()) {
-        if(this->employees.count(employer_id)==0){
+        if (this->employees.count(employer_id) == 0) {
             throw "Employer ID mismatch";
             return nullptr;
         }
@@ -99,7 +99,6 @@ Flight *MyImplementation::addFlight(int model_number, Date date, string source, 
     MyPlane *temp = this->planesByModel[model_number];
     if (temp == nullptr) {
         throw "No available planes";
-        return nullptr;
     }
     auto *flight = new MyFlight(model_number, date, source, destination);
     int man = temp->getCrewNeeded()[MANAGER];
@@ -149,7 +148,6 @@ Flight *MyImplementation::addFlight(int model_number, Date date, string source, 
     if (!foundPlane) {
         delete flight;
         throw "No available planes";
-        return nullptr;
     }
     for (auto &crew: flight->getAssignedCrew()) {
         this->saveWorking(crew->getID(), flight->getID());
@@ -186,6 +184,9 @@ Flight *MyImplementation::getFlight(string id) {
 }
 
 Customer *MyImplementation::addCustomer(string full_name, int priority) {
+    if (priority > 5 || priority < 0) {
+        throw "Priority number error";
+    }
     if (cusFile) {
         FileTable::loadFile("Customers.txt", this);
         cusFile = false;
@@ -288,6 +289,26 @@ Reservation *MyImplementation::getReservation(string id) {
 }
 
 void MyImplementation::exit() {
+    if (empFile) {
+        FileTable::loadFile("Employees.txt", this);
+        empFile = false;
+    }
+    if (plaFile) {
+        FileTable::loadFile("Planes.txt", this);
+        plaFile = false;
+    }
+    if (fliFile) {
+        FileTable::loadFile("Flights.txt", this);
+        fliFile = false;
+    }
+    if (resFile) {
+        FileTable::loadFile("Reservations.txt", this);
+        resFile = false;
+    }
+    if (cusFile) {
+        FileTable::loadFile("Customers.txt", this);
+        cusFile = false;
+    }
     FileTable::saveEmployeeFile(this->employees);
     FileTable::savePlaneFile(this->planes);
     FileTable::saveCustomerFile(this->customers);
@@ -322,7 +343,7 @@ bool MyImplementation::loadIfWorkingEmployee(string employee, Date date) {
     if (file.fail()) {
         return false;
     }
-    while (file.eof()) {
+    while (!file.eof()) {
         string idEmp, idFli;
         file >> idEmp >> idFli;
         if (!(idEmp.empty() || idFli.empty())) {
@@ -353,7 +374,7 @@ bool MyImplementation::loadIfUsedPlane(string plane, Date date) {
     if (file.fail()) {
         return false;
     }
-    while (file.eof()) {
+    while (!file.eof()) {
         string idFli, idPla;
         file >> idFli >> idPla;
         if (!(idFli.empty() || idPla.empty())) {
@@ -375,7 +396,7 @@ void MyImplementation::loadFlightCrew(MyFlight *flight) {
     if (file.fail()) {
         return;
     }
-    while (file.eof()) {
+    while (!file.eof()) {
         string idEmp, idFli;
         file >> idEmp >> idFli;
         if (!(idFli.empty() || idEmp.empty())) {
