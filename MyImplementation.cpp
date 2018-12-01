@@ -15,7 +15,6 @@ Employee *MyImplementation::addEmployee(int seniority, int birth_year, string em
     if (!employer_id.empty()) {
         if (this->employees.count(employer_id) == 0) {
             throw "Employer ID mismatch";
-            return nullptr;
         }
         emp = new MyEmployee(seniority, birth_year, title, this->employees[employer_id]);
     } else {
@@ -106,9 +105,9 @@ Flight *MyImplementation::addFlight(int model_number, Date date, string source, 
     int att = temp->getCrewNeeded()[FLY_ATTENDANT];
     int nav = temp->getCrewNeeded()[NAVIGATOR];
     int oth = temp->getCrewNeeded()[OTHER];
-    string myId;
+    bool isWorking = false;
     for (auto &employee: this->employees) {
-        bool isWorking = false;
+        isWorking = false;
         if (this->loadIfWorkingEmployee(employee.first, flight)) {
             isWorking = true;
         }

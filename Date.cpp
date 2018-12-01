@@ -33,7 +33,7 @@ int getDay(string date) {
     i++;
     while (date[i] != '-') { i++; };
     i++;
-    while (date[i] != '-') {
+    while (date[i] != '\0') {
         day *= 10;
         day += date[i] - '0';
         i++;
